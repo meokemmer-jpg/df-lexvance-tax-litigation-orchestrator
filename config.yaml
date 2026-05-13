@@ -1,0 +1,156 @@
+# DF-LEXVANCE-TAX-LITIGATION-ORCHESTRATOR Configuration [CRUX-MK]
+# Welle-48 Track-A Wave-1 DC-1 Foundation-DF (Gap-Cluster B)
+# Steuerstreit + DBA + Cross-Border-Steuer + Wegzugsbesteuerung
+
+df_id: DF-LEXVANCE-TAX-LITIGATION-ORCHESTRATOR
+df_name: lexvance-tax-litigation-orchestrator
+version: 0.1.0-SKELETON
+status: SKELETON-CONDITIONAL
+crux-mk: true
+
+description: |
+  Tax-Litigation-Orchestrator fuer Steuerstreit-Pipeline (Einspruch + Klage +
+  BFH/EuGH-Verfahren) + DBA-Mapping + Cross-Border-Steuer (Wegzugsbesteuerung
+  Cape-Coral DIREKT + E-2-Visa-Implikation) + BEPS Action 13 Verrechnungspreis.
+
+# === Default-Action ===
+
+default_action:
+  description: "Pro Mandant Verfahrens-Status + Fristen-Tracker + DBA-Mapping + Verrechnungspreis-Check"
+  rho_per_run_eur: 500
+  block_gates:
+    - gate_id: K13_PAV
+      block_reason: "Steuer-Daten = K_0-DIREKT, PHRONESIS_TICKET Martin Pflicht (Wegzugsbesteuerung K_0-Sperr-Liste P6-1)"
+      false_block_cost_eur: 1000
+      legitimate_block_condition: "Production-Mode aktiv UND PHRONESIS_TICKET fehlt"
+    - gate_id: K11
+      block_reason: "Mandanten-Cross-Read verboten ohne Tenant-Isolation"
+      false_block_cost_eur: 500
+      legitimate_block_condition: "Tenant-Context fehlt"
+  graceful_degradation_path: "Mock-Tax-Status mit Fristen-Stub (Verfahrens-Status unbekannt, Manual-Review-Flag)"
+
+# === Tier-2 Pflicht-Check ===
+
+tier_2_check:
+  lambda_per_month_estimate: 20
+  narrow_scope: "Verfahrens-Tracker + Fristen + DBA-Mapping + Verrechnungspreis"
+  determinism: 0.80
+  rollback_seconds: 30
+  test_coverage_target: 0.85
+  k0_protected: true  # DIREKT (Wegzugsbesteuerung K_0)
+  q0_measurable: true
+  escalation_after_n_fails: 3
+  rho_budget_eur_day: 10
+  audit_trail: branch-hub/audit/df-lexvance-tax-litigation-orchestrator.jsonl
+
+# === K11-K16 ===
+
+k11_cascade_containment:
+  cascade_isolation: hard
+  failure_blast_radius: 1
+  dependency_dlq_strategy: "skip-verfahren-resume-naechstes + jsonl-log"
+
+k12_distillation_resistenz:
+  output_feeds_into_training: false
+  provenance_required_in_output: true  # BFH/EuGH-Aktenzeichen + DBA-Artikel-Ref
+  non_llm_validation_layer: "Fristen-Bandbreite-Check (Klage 1M, Einspruch 1M, Revision 1M etc.) + DBA-Artikel-Lookup"
+
+k13_independent_ground_truth:
+  external_anchor_type: "bfh_db + eu_tax_db + dba_corpus + github_api"
+  external_anchor_validation_frequency: "wochentlich"
+  pre_action_domain_check:
+    env_tag: "dev|staging|prod via DF_LEXVANCE_TAX_ENV"
+    mount_point: "branch-hub/lexvance/steuerverfahren/ + DBA-Corpus"
+    network_region: "n/a"
+  pre_action_backup_check:
+    backup_status: "Verfahrens-Akten read-only (kein Mutation)"
+    replication_lag: "n/a"
+  pre_action_blast_radius_check:
+    blast_radius: "max 1 Verfahren pro Run (read-only)"
+    reversibility_class: "state-only"
+
+k14_human_override_decay:
+  override_complexity: requires_specialist  # K_0-DIREKT: Steuer-Berater + Martin
+  override_documentation_freshness_days: 7
+  martin_review_cadence: pro Fristen-Warnung + pro Verfahrens-Update
+  bus_factor_handover_drilled: false
+
+k15_entropy_budget:
+  entropy_added_loc_estimate: 280
+  entropy_added_concepts:
+    - TaxVerfahrenTracker
+    - FristenManager
+    - DbaMapper
+    - VerrechnungspreisChecker
+  entropy_justified_by_rho: "4.0x (Wegzugsbesteuerung-Risiko + BEPS-Compliance)"
+  entropy_subtractive_potential: "ersetzt manuellen Verfahrens-Status-Tracker bei LexVance"
+
+k16_concurrent_spawn_mutex:
+  concurrent_spawn_protection: both
+  lock_dir: /tmp/df-lexvance-tax-litigation-orchestrator.lock
+  lock_stale_age_h: 6
+  engine_pgrep_check: true
+  lock_release_on: EXIT_INT_TERM
+
+# === LC1-LC5 ===
+
+lose_coupling:
+  LC1_graceful_degradation:
+    degradation_modes:
+      - full              # alle 4 Bereiche (Verfahren + Fristen + DBA + Verrechnungspreis)
+      - degraded_dba      # DBA-Corpus nicht erreichbar
+      - degraded_bfh      # BFH-DB-Down (Verfahrens-Status unbekannt)
+      - standalone        # Mock-Status mit Manual-Review-Flag
+    degradation_test_required: true
+
+  LC2_direct_mode:
+    direct_mode_available: true
+    direct_mode_capability: 0.70
+    direct_mode_trigger: "BFH-DB-Timeout oder DBA-Corpus-Sync-Drift"
+
+  LC3_circuit_breaker:
+    circuit_breaker_timeout_s: 60
+    circuit_breaker_open_threshold: 3
+    circuit_breaker_half_open_test_interval_s: 300
+
+  LC4_failure_isolation:
+    state_externalization: true
+    idempotent_operations: true
+    dependency_dlq_separate: true
+
+  LC5_health_check:
+    health_check_dependencies: []
+    health_check_degraded_score: 0.6
+    health_check_endpoint_or_file: /tmp/df-lexvance-tax-litigation-orchestrator-health.json
+
+# === ENV-Var-Gated Real-Integration ===
+
+env_var_gating:
+  DF_LEXVANCE_TAX_REAL_ENABLED: false
+  PHRONESIS_TICKET_REQUIRED: true
+  default_mode: mock
+
+# === Operatives ===
+
+operations:
+  output_path: ~/Projects/dark-factories/df-lexvance-tax-litigation-orchestrator/
+  state_file: ~/.df-lexvance-tax-litigation-orchestrator/state.json
+  jsonl_audit_path: branch-hub/audit/df-lexvance-tax-litigation-orchestrator.jsonl
+  stop_flag_path: /tmp/df-lexvance-tax-litigation-orchestrator.stop
+  health_file_path: /tmp/df-lexvance-tax-litigation-orchestrator-health.json
+  schedule: "Continuous (per Verfahren on-demand) + Daily 06:00 Fristen-Sweep"
+
+# === rho-Schaetzung ===
+
+rho_estimate:
+  annual_eur: 200000
+  reason: "Wegzugsbesteuerung Cape-Coral K_0-DIREKT + BEPS-Verrechnungspreis-Risiko + Fristen-Vermeidung"
+  schwer_quantifizierbar: false  # K_0-Naehe Cape-Coral konkret messbar
+
+# === CRUX-Bindung ===
+
+crux_bindung:
+  K_0: "DIREKT GESCHUETZT (Wegzugsbesteuerung Cape-Coral + BEPS-Verrechnungspreis)"
+  Q_0: "epistemische Integritaet via DBA-Corpus-Verlinkung"
+  I_min: "strukturierte 4-Bereiche-Pipeline (280 LOC + Tests)"
+  W_0: "LexVance + Steuer-Berater-Stunden reduziert via Pre-Filter"
