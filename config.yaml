@@ -152,3 +152,8 @@ output_pipe_block:
 - mandant_external_communication
 - gegner_anwalt_notify
 - draft_publish_external
+K13_external_anchor_type: verified_web_sources
+K13_external_anchor_validation_frequency: per_anchor_run
+K13_external_anchor_count: 2
+K13_external_anchor_evidence: https://www.legaltechverband.de/publikationen/legal-tech-monitor-2025/
+K13_anchored_ts: 2026-06-23T16:10:26.432926+00:00
