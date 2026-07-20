@@ -1,9 +1,9 @@
 {
   "df": "df-lexvance-tax-litigation-orchestrator",
-  "ts": "2026-07-18T15:56:00.442961+00:00",
+  "ts": "2026-07-19T15:56:44.496295+00:00",
   "maturity": "TESTED",
   "maturity_level": 4,
   "evidence_grade": 4,
-  "wargame_verdict": "CONDITIONAL",
+  "wargame_verdict": null,
   "crux": "[CRUX-MK]"
 }
