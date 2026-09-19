@@ -179,7 +179,11 @@ def to_audit_record(result: TaxLitigationResult) -> dict:
         "mandant_id": result.mandant_id,
         "verfahren_typ": result.verfahren_typ,
         "status": result.status,
+        "naechste_frist_iso": result.naechste_frist_iso,
         "tage_bis_frist": result.tage_bis_frist,
+        "dba_referenzen": list(result.dba_referenzen),
+        "verrechnungspreis_check": result.verrechnungspreis_check,
         "source": result.source,
-        "phronesis_ticket": result.phronesis_ticket or "none",
+        "phronesis_ticket": result.phronesis_ticket,
+        "warnings": list(result.warnings),
     }
