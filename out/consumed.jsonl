@@ -110,3 +110,4 @@
 {"ts": "2026-09-07T07:37:09.003223+00:00", "producer": "df-lexvance-tax-litigation-orchestrator", "by": "df-artifact-collector", "purpose": "index", "crux": "[CRUX-MK]", "valid": true}
 {"ts": "2026-09-07T08:07:50.019893+00:00", "producer": "df-lexvance-tax-litigation-orchestrator", "by": "df-artifact-collector", "purpose": "index", "crux": "[CRUX-MK]", "valid": true}
 {"ts": "2026-09-07T08:39:59.324972+00:00", "producer": "df-lexvance-tax-litigation-orchestrator", "by": "df-artifact-collector", "purpose": "index", "crux": "[CRUX-MK]", "valid": true}
+{"ts": "2026-09-22T07:32:31.766634+00:00", "producer": "df-lexvance-tax-litigation-orchestrator", "by": "df-domain-nlm-sync", "purpose": "nlm-board", "crux": "[CRUX-MK]", "valid": true}
